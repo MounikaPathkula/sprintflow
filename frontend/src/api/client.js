@@ -1,13 +1,18 @@
-const BASE = '/api';
+// In local dev, Vite's proxy handles /api -> localhost:8080.
+// In production, set VITE_API_URL to your deployed backend's URL
+// (e.g. https://sprintflow-nlxg.onrender.com) and it's used directly.
+const BASE = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : "/api";
 
 function getToken() {
-  return localStorage.getItem('sprintflow_token');
+  return localStorage.getItem("sprintflow_token");
 }
 
 async function request(path, options = {}) {
   const token = getToken();
   const headers = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers || {}),
   };
@@ -22,27 +27,40 @@ async function request(path, options = {}) {
   }
 
   if (!res.ok) {
-    const message = data?.error || (data && Object.values(data)[0]) || 'Request failed';
+    const message =
+      data?.error || (data && Object.values(data)[0]) || "Request failed";
     throw new Error(message);
   }
   return data;
 }
 
 export const authApi = {
-  register: (payload) => request('/auth/register', { method: 'POST', body: JSON.stringify(payload) }),
-  login: (payload) => request('/auth/login', { method: 'POST', body: JSON.stringify(payload) }),
+  register: (payload) =>
+    request("/auth/register", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  login: (payload) =>
+    request("/auth/login", { method: "POST", body: JSON.stringify(payload) }),
 };
 
 export const sprintApi = {
-  list: () => request('/sprints'),
+  list: () => request("/sprints"),
   get: (id) => request(`/sprints/${id}`),
-  create: (payload) => request('/sprints', { method: 'POST', body: JSON.stringify(payload) }),
+  create: (payload) =>
+    request("/sprints", { method: "POST", body: JSON.stringify(payload) }),
 };
 
 export const taskApi = {
   listForSprint: (sprintId) => request(`/tasks?sprintId=${sprintId}`),
-  create: (payload) => request('/tasks', { method: 'POST', body: JSON.stringify(payload) }),
-  update: (id, payload) => request(`/tasks/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
-  logHours: (id, hours) => request(`/tasks/${id}/log-hours`, { method: 'POST', body: JSON.stringify({ hours }) }),
-  remove: (id) => request(`/tasks/${id}`, { method: 'DELETE' }),
+  create: (payload) =>
+    request("/tasks", { method: "POST", body: JSON.stringify(payload) }),
+  update: (id, payload) =>
+    request(`/tasks/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
+  logHours: (id, hours) =>
+    request(`/tasks/${id}/log-hours`, {
+      method: "POST",
+      body: JSON.stringify({ hours }),
+    }),
+  remove: (id) => request(`/tasks/${id}`, { method: "DELETE" }),
 };
